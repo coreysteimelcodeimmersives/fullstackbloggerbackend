@@ -172,6 +172,7 @@
   - Note: The idea here is that the input fields on the <BlogsPage /> will update the state variables in <App />. Since the useEffect hook in <App /> is watching the state variables [sortField, sortOrder, filterField, filterValue, limit, page] for changes, every time the user inputs a new value into any <BlogsPage /> input field, the useEffect will trigger. The new fetch url will be calculated with the most up to date query params and will in turn refetch the new list of blogs from the server.
 
 - Implement the following in the Server
+
   - [Optional] Install nodemon on the server and add the custom dev command in the package.json
     - npm i nodemon
     - "scripts": {
@@ -179,6 +180,7 @@
       "dev": "PORT=4000 nodemon ./bin/www"
       }
   - In the "/blogs/all" route, implement the following:
+
     - Add the following variables inside the route handler function to get query param values from the incoming GET request url:
       - const limit = Number(req.query.limit)
       - const skip = Number(req.query.limit) \* (Number(req.query.page) - 1)
@@ -197,5 +199,72 @@
       - Note: The above code may have to be modified depending on your implementation of the "/blogs/all" route in the fullstack blogger project. But it should be very similar in functionality to the "/blogs/all" route in the ExpressJS example.
     - Note: The sorting, filter, limit and page functionality are now being handled by the database using the mongodb query. We will no longer need to use JS functions to implement this functionality on the blogs dataset anymore.
     - Stretch Goal: Add server-side validation to the "/blogs/all" route to ensure the following before the mongo query is executed:
+
       - sortField, sortOrder, filterField and filterValue must have truthy values. I.E. they must not be null or an empty string.
       - limit and page must be integer values greater than 0.
+
+      ### Requirements (Fullstack Part 2 - POST Blog)
+
+* Implement the following in the Server
+
+  - Create a new POST route "/blog-submit" and implement the following
+    - Inside the route handler function, add the following variables to get the incoming values from the POST request body:
+      - const title = req.body.title
+      - const text = req.body.text
+      - const author = req.body.author
+    - Create a new blogPost object with the following fields, some of which will need to be generated with each new post.
+      - title {string}
+      - text {string}
+      - author {string}
+      - createdAt {date}
+      - id {number}
+      - lastModified {date}
+    - Add a mongo insert method to save the new blogPost object in the database.
+  - Note: Use ExpressJS Example "/blog-submit" route as reference.
+
+* Implement the following in the Client
+
+  - Create a new page <PostBlogPage />
+  - Create a new route in <App /> "/post-blog" with the element as <PostBlogPage />
+  - Add the following function in <App />
+    - const blogSubmit = async (blog) => {
+      const url = `${urlEndpoint}/blogs/blog-submit`
+      const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+      'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(blog)
+      });
+      const responseJSON = await response.json();
+      }
+  - Modify the "/blogs" route to be the index route of <App /> so that it shows by default at localhost:3000
+    - <Route index element={<BlogsPage message={serverJSON.message} blogSubmit={blogSubmit} />} />
+  - theImplement following in <PostBlogPage />
+  - Add three new state variables:
+    - title {string}
+    - author {string}
+    - text {string}
+  - Add the following input fields:
+    - title
+      - Should be a text input field
+    - author
+      - Should be a text input field
+    - text
+      - Should be a <textarea> field
+  - Hook up all input fields to their corresponding state variables
+  - Add a <button> called Submit
+  - The Submit button should call props.blogSubmit(blogData) onClick and then programatically redirect to the home page.
+    - const navigate = useNavigate()
+    - navigate(`/`)
+  - Note: blogData is going to be an object containing the current values of title, author, and text in the <PostBlogPage /> state. This data will be received by the server through the POST request, which will then in turn generate a new blog post with the added fields such as createdAt. The server will then save the new post using the mongo insert() method.
+
+* Stretch Goal: Add a debounce in the Front-End to the text input fields
+  - https://usehooks.com/useDebounce/
+* Stretch Goal: Modify the mongo method for "all-blogs" so that you can do a text match search in a blog post text field for a specific string. Additionally, update the filter options dropdown on the Front-End to include the "text" option.
+  - Note: This will NOT check for partial searches
+  - db.articles.find( { $text: { $search: "coffee" } } )
+  - https://www.mongodb.com/docs/manual/reference/operator/query/text/#examples
+* Super Stretch Goal:
+  - elemMatch may be able to do a partial string match
+  - https://www.mongodb.com/docs/manual/reference/operator/query/elemMatch/

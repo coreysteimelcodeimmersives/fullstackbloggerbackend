@@ -36,4 +36,29 @@ router.get("/all-blogs", async (req, res) => {
   }
 });
 
+router.post("/blog-submit", async (req, res) => {
+  try {
+    const collection = await blogsDB().collection("posts50");
+    const sortedBlogArr = await collection.find({}).sort({ id: 1 }).toArray();
+    const lastBlog = sortedBlogArr[sortedBlogArr.length - 1];
+    const title = req.body.title ? req.body.title : "";
+    const text = req.body.text ? req.body.text : "";
+    const author = req.body.author ? req.body.author : "";
+    const category = req.body.category ? req.body.category : "";
+    const blogPost = {
+      title: title,
+      text: text,
+      author: author,
+      category: category,
+      createdAt: new Date(),
+      lastModified: new Date(),
+      id: Number(lastBlog.id + 1),
+    };
+    await collection.insertOne(blogPost);
+    res.status(200).send("Successfully Posted");
+  } catch (error) {
+    res.status(500).send("Error posting blog." + error);
+  }
+});
+
 module.exports = router;
