@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 
 const { blogsDB } = require("../mongo");
+const { serverCheckBlogIsValid } = require("../utils/validation");
 
 router.get("/hello-blogs", (req, res) => {
   res.json({ message: "hello from express" });
@@ -38,13 +39,27 @@ router.get("/all-blogs", async (req, res) => {
 
 router.post("/blog-submit", async (req, res) => {
   try {
+    const blogIsValid = serverCheckBlogIsValid(req.body);
+
+    console.log(blogIsValid);
+
+    if (!blogIsValid) {
+      res.status(400).json({
+        message:
+          "To submit a blog you must include Title, Author, Category, and Text.",
+        success: false,
+      });
+      return;
+    }
+
     const collection = await blogsDB().collection("posts50");
     const sortedBlogArr = await collection.find({}).sort({ id: 1 }).toArray();
     const lastBlog = sortedBlogArr[sortedBlogArr.length - 1];
-    const title = req.body.title ? req.body.title : "";
-    const text = req.body.text ? req.body.text : "";
-    const author = req.body.author ? req.body.author : "";
-    const category = req.body.category ? req.body.category : "";
+    const title = req.body.title;
+    const text = req.body.text;
+    const author = req.body.author;
+    const category = req.body.category;
+
     const blogPost = {
       title: title,
       text: text,
@@ -55,9 +70,11 @@ router.post("/blog-submit", async (req, res) => {
       id: Number(lastBlog.id + 1),
     };
     await collection.insertOne(blogPost);
-    res.status(200).send("Successfully Posted");
+    res.status(200).json({ message: "Successfully Posted", success: true });
   } catch (error) {
-    res.status(500).send("Error posting blog." + error);
+    res
+      .status(500)
+      .json({ message: "Error posting blog." + error, success: false });
   }
 });
 
