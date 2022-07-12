@@ -41,8 +41,6 @@ router.post("/blog-submit", async (req, res) => {
   try {
     const blogIsValid = serverCheckBlogIsValid(req.body);
 
-    console.log(blogIsValid);
-
     if (!blogIsValid) {
       res.status(400).json({
         message:
@@ -59,14 +57,15 @@ router.post("/blog-submit", async (req, res) => {
     const text = req.body.text;
     const author = req.body.author;
     const category = req.body.category;
+    const date = new Date();
 
     const blogPost = {
       title: title,
       text: text,
       author: author,
       category: category,
-      createdAt: new Date(),
-      lastModified: new Date(),
+      createdAt: date,
+      lastModified: date,
       id: Number(lastBlog.id + 1),
     };
     await collection.insertOne(blogPost);
