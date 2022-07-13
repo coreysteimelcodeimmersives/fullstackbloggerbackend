@@ -4,17 +4,23 @@ var router = express.Router();
 const { blogsDB } = require("../mongo");
 const { serverCheckBlogIsValid } = require("../utils/validation");
 
-router.get("/admin/blog-list", async (req, res, next) => {
+router.get("/blog-list", async (req, res, next) => {
   try {
     const collection = await blogsDB().collection("posts50");
     const blogs = await collection
       .find({})
-      .projection({ id: 1, title: 1, author: 1, createdAt: 1, lastModified: 1 })
+      .sort({ id: -1 })
+      .project({ id: 1, title: 1, author: 1, createdAt: 1, lastModified: 1 })
       .toArray();
-  } catch (error) {}
+    console.log("blogs", blogs);
+    res.status(200).json({ message: blogs, succes: true });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to load" + error, success: false });
+  }
 });
 
-router.put("/admin/edit-blog", async (req, res) => {
+router.put("/edit-blog", async (req, res) => {
   try {
     const updateBlogIsValid = serverCheckBlogIsValid(req.body);
     if (!updateBlogIsValid) {
@@ -52,3 +58,5 @@ router.delete("/delete-blog/:blogId", async (req, res) => {
     res.status(500).json({ message: "Error " + error, success: false });
   }
 });
+
+module.exports = router;
