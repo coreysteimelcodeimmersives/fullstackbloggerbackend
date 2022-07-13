@@ -4,7 +4,7 @@ var router = express.Router();
 const { blogsDB } = require("../mongo");
 const { serverCheckBlogIsValid } = require("../utils/validation");
 
-router.get("/blog-list", async (req, res, next) => {
+router.get("/admin/blog-list", async (req, res, next) => {
   try {
     const collection = await blogsDB().collection("posts50");
     const blogs = await collection
@@ -14,7 +14,7 @@ router.get("/blog-list", async (req, res, next) => {
   } catch (error) {}
 });
 
-router.put("/edit-blog", async (req, res) => {
+router.put("/admin/edit-blog", async (req, res) => {
   try {
     const updateBlogIsValid = serverCheckBlogIsValid(req.body);
     if (!updateBlogIsValid) {
