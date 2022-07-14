@@ -10,12 +10,17 @@ router.get("/blog-list", async (req, res, next) => {
     const blogs = await collection
       .find({})
       .sort({ id: -1 })
-      .project({ id: 1, title: 1, author: 1, createdAt: 1, lastModified: 1 })
+      .project({
+        id: 1,
+        title: 1,
+        author: 1,
+        createdAt: 1,
+        lastModified: 1,
+        category: 1,
+      })
       .toArray();
-    console.log("blogs", blogs);
     res.status(200).json({ message: blogs, succes: true });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Failed to load" + error, success: false });
   }
 });
@@ -29,15 +34,25 @@ router.put("/edit-blog", async (req, res) => {
         .json({ message: "Blog update is not valid", success: false });
       return;
     }
+    const collection = await blogsDB().collection("posts50");
+    const blogId = Number(req.body.id);
+    const ogBlog = await collection.findOne({ id: blogId });
+    if (!ogBlog) {
+      res.json({ message: "Blog does not Exist", status: 204 });
+    }
     const newPostData = req.body;
     const date = new Date();
     const updateBlog = { ...newPostData, lastModified: date };
+    console.log(updateBlog);
+
     await collection.updateOne(
       { id: newPostData.id },
       { $set: { ...updateBlog } }
     );
+    console.log("should work");
     res.status(200).json({ message: "Blog update succes", success: true });
   } catch (error) {
+    console.log(error);
     res
       .status(500)
       .json({ message: "Error updating blog" + error, success: false });

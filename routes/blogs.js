@@ -77,4 +77,15 @@ router.post("/blog-submit", async (req, res) => {
   }
 });
 
+router.get("/single-blog/:blogId", async (req, res) => {
+  try {
+    const blogId = Number(req.params.blogId);
+    const collection = await blogsDB().collection("posts50");
+    const blogPost = await collection.findOne({ id: blogId });
+    res.status(200).json({ message: blogPost, success: true });
+  } catch (error) {
+    res.status(500).json({ message: "Error, " + error, success: false });
+  }
+});
+
 module.exports = router;
